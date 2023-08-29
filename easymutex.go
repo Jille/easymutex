@@ -7,35 +7,35 @@ import "sync"
 
 // EasyLocker is a wrapper around sync.Locker that keeps track of whether we have the mutex.
 type EasyLocker struct {
-	Locker sync.Locker
-	Held   bool
+	L    sync.Locker
+	Held bool
 }
 
 func (e *EasyLocker) Lock() {
-	e.Locker.Lock()
+	e.L.Lock()
 	e.Held = true
 }
 
 func (e *EasyLocker) Unlock() {
 	if e.Held {
-		e.Locker.Unlock()
+		e.L.Unlock()
 		e.Held = false
 	}
 }
 
 // EasyMutex is a wrapper around *sync.Mutex that keeps track of whether we have the mutex.
 type EasyMutex struct {
-	Locker *sync.Mutex
-	Held   bool
+	L    *sync.Mutex
+	Held bool
 }
 
 func (e *EasyMutex) Lock() {
-	e.Locker.Lock()
+	e.L.Lock()
 	e.Held = true
 }
 
 func (e *EasyMutex) TryLock() bool {
-	if e.Locker.TryLock() {
+	if e.L.TryLock() {
 		e.Held = true
 		return true
 	}
@@ -44,25 +44,25 @@ func (e *EasyMutex) TryLock() bool {
 
 func (e *EasyMutex) Unlock() {
 	if e.Held {
-		e.Locker.Unlock()
+		e.L.Unlock()
 		e.Held = false
 	}
 }
 
 // EasyRWMutex is a wrapper around *sync.RWMutex that keeps track of whether we have the mutex.
 type EasyRWMutex struct {
-	Locker        *sync.RWMutex
+	L             *sync.RWMutex
 	HeldExclusive bool
 	HeldShared    bool
 }
 
 func (e *EasyRWMutex) Lock() {
-	e.Locker.Lock()
+	e.L.Lock()
 	e.HeldExclusive = true
 }
 
 func (e *EasyRWMutex) TryLock() bool {
-	if e.Locker.TryLock() {
+	if e.L.TryLock() {
 		e.HeldExclusive = true
 		return true
 	}
@@ -71,18 +71,18 @@ func (e *EasyRWMutex) TryLock() bool {
 
 func (e *EasyRWMutex) Unlock() {
 	if e.HeldExclusive {
-		e.Locker.Unlock()
+		e.L.Unlock()
 		e.HeldExclusive = false
 	}
 }
 
 func (e *EasyRWMutex) RLock() {
-	e.Locker.RLock()
+	e.L.RLock()
 	e.HeldShared = true
 }
 
 func (e *EasyRWMutex) TryRLock() bool {
-	if e.Locker.TryRLock() {
+	if e.L.TryRLock() {
 		e.HeldShared = true
 		return true
 	}
@@ -91,7 +91,7 @@ func (e *EasyRWMutex) TryRLock() bool {
 
 func (e *EasyRWMutex) RUnlock() {
 	if e.HeldShared {
-		e.Locker.RUnlock()
+		e.L.RUnlock()
 		e.HeldShared = false
 	}
 }
@@ -99,10 +99,10 @@ func (e *EasyRWMutex) RUnlock() {
 // EasyUnlock calls Unlock() or RUnlock() or neither based on whether have the lock exclusive/shared or not at all.
 func (e *EasyRWMutex) EasyUnlock() {
 	if e.HeldExclusive {
-		e.Locker.Unlock()
+		e.L.Unlock()
 		e.HeldExclusive = false
 	} else if e.HeldShared {
-		e.Locker.RUnlock()
+		e.L.RUnlock()
 		e.HeldShared = false
 	}
 }
