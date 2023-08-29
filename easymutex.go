@@ -1,6 +1,6 @@
 // Package easymutex is a small wrapper around sync.Locker that allows you to always defer the unlock, even if you might unlock sooner.
 //
-// The struct is simply a mutex with a boolean. The boolean knows if we have the lock and skips Unlock if we didn't have it.
+// The struct is simply a mutex with a boolean. The boolean knows if we have the lock and skips Lock/Unlock if we already/don't have the lock.
 package easymutex
 
 import "sync"
@@ -12,8 +12,10 @@ type EasyLocker struct {
 }
 
 func (e *EasyLocker) Lock() {
-	e.L.Lock()
-	e.Held = true
+	if !e.Held {
+		e.L.Lock()
+		e.Held = true
+	}
 }
 
 func (e *EasyLocker) Unlock() {
@@ -30,8 +32,10 @@ type EasyMutex struct {
 }
 
 func (e *EasyMutex) Lock() {
-	e.L.Lock()
-	e.Held = true
+	if !e.Held {
+		e.L.Lock()
+		e.Held = true
+	}
 }
 
 func (e *EasyMutex) TryLock() bool {
@@ -57,8 +61,10 @@ type EasyRWMutex struct {
 }
 
 func (e *EasyRWMutex) Lock() {
-	e.L.Lock()
-	e.HeldExclusive = true
+	if !e.HeldExclusive {
+		e.L.Lock()
+		e.HeldExclusive = true
+	}
 }
 
 func (e *EasyRWMutex) TryLock() bool {
@@ -77,8 +83,10 @@ func (e *EasyRWMutex) Unlock() {
 }
 
 func (e *EasyRWMutex) RLock() {
-	e.L.RLock()
-	e.HeldShared = true
+	if !e.HeldShared {
+		e.L.RLock()
+		e.HeldShared = true
+	}
 }
 
 func (e *EasyRWMutex) TryRLock() bool {
